@@ -49,7 +49,7 @@ type Layout = {
 }
 
 type PlannerState = {
-  schemaVersion: 1
+  schemaVersion: 4
   products: Product[]
   layouts: Layout[]
   activeLayoutId: string
@@ -77,20 +77,32 @@ type FixedFixture = {
   verifiedBy: string
 }
 
-const PLAN_WIDTH = 8200
-const PLAN_HEIGHT = 6600
-const DRAWING_REFERENCE_MM = 3917
-const STORAGE_KEY = 'mokgam-85a1-planner-v1'
+type Passage = {
+  id: string
+  name: string
+  x: number
+  y: number
+  width: number
+  height: number
+  kind: 'main' | 'branch'
+}
+
+const PLAN_WIDTH = 10200
+const PLAN_HEIGHT = 10150
+const DRAWING_REFERENCE_MM = 3800
+const STORAGE_KEY = 'mokgam-85a1-planner-v4'
 
 const rooms: Room[] = [
-  { id: 'balcony', name: '발코니', x: 0, y: 0, width: 8200, height: 600, tone: 'balcony' },
-  { id: 'room2', name: '침실 2', x: 0, y: 600, width: 2400, height: 2500, tone: 'bedroom' },
-  { id: 'room3', name: '침실 3', x: 2400, y: 600, width: 2200, height: 2500, tone: 'bedroom' },
-  { id: 'master', name: '안방', x: 4600, y: 600, width: 3600, height: 3000, tone: 'master' },
-  { id: 'living', name: '거실', x: 0, y: 3100, width: 4700, height: 3500, tone: 'living' },
-  { id: 'kitchen', name: '주방 · 식당', x: 4700, y: 3600, width: 3500, height: 1800, tone: 'kitchen' },
-  { id: 'bath', name: '욕실', x: 4700, y: 5400, width: 1500, height: 1200, tone: 'bath' },
-  { id: 'entry', name: '현관', x: 6200, y: 5400, width: 2000, height: 1200, tone: 'entry' },
+  { id: 'room3', name: '침실 3', x: 0, y: 0, width: 2900, height: 3690, tone: 'bedroom' },
+  { id: 'balcony2', name: '발코니 2', x: 2900, y: 0, width: 3500, height: 1350, tone: 'balcony' },
+  { id: 'kitchen', name: '주방 · 식당', x: 2900, y: 1350, width: 3500, height: 4000, tone: 'kitchen' },
+  { id: 'master-bath', name: '부부 욕실', x: 0, y: 3690, width: 1700, height: 2240, tone: 'bath' },
+  { id: 'master', name: '침실 1', x: 0, y: 5930, width: 3500, height: 2440, tone: 'master' },
+  { id: 'living', name: '거실', x: 3500, y: 5350, width: 3800, height: 3020, tone: 'living' },
+  { id: 'entry', name: '현관', x: 6400, y: 3070, width: 1600, height: 2280, tone: 'entry' },
+  { id: 'bath', name: '공용 욕실', x: 8000, y: 3640, width: 2200, height: 2290, tone: 'bath' },
+  { id: 'room2', name: '침실 2', x: 7300, y: 5930, width: 2900, height: 2870, tone: 'bedroom' },
+  { id: 'balcony1', name: '발코니 1', x: 7300, y: 8800, width: 2900, height: 1350, tone: 'balcony' },
 ]
 
 const fixedFixtures: FixedFixture[] = [
@@ -98,22 +110,42 @@ const fixedFixtures: FixedFixture[] = [
     id: 'bedroom3-wardrobe',
     name: '기본 붙박이장',
     roomId: 'room3',
-    x: 3980,
-    y: 800,
-    width: 600,
-    height: 1650,
+    x: 120,
+    y: 3040,
+    width: 1700,
+    height: 530,
     verifiedBy: '59A1 실세대 사전점검 사진',
   },
   {
-    id: 'kitchen-sink',
-    name: '기본 싱크대',
+    id: 'kitchen-sink-wall',
+    name: '기본 싱크대 · 벽면',
     roomId: 'kitchen',
-    x: 4760,
-    y: 3660,
-    width: 2500,
-    height: 600,
+    x: 5740,
+    y: 1470,
+    width: 540,
+    height: 2700,
+    verifiedBy: '59A1 평면도 및 실세대 사진',
+  },
+  {
+    id: 'kitchen-sink-return',
+    name: '기본 싱크대 · ㄱ자',
+    roomId: 'kitchen',
+    x: 4980,
+    y: 3650,
+    width: 1300,
+    height: 520,
     verifiedBy: '59A1 실세대 사전점검 사진',
   },
+]
+
+const passages: Passage[] = [
+  { id: 'entry-main', name: '현관 진입 통로', x: 6570, y: 3900, width: 920, height: 1900, kind: 'main' },
+  { id: 'central-hall', name: '집 안 중앙 통로', x: 2050, y: 5000, width: 5900, height: 900, kind: 'main' },
+  { id: 'living-route', name: '거실 통로', x: 6350, y: 5450, width: 800, height: 2420, kind: 'main' },
+  { id: 'kitchen-route', name: '주방 통로', x: 3900, y: 2700, width: 950, height: 2800, kind: 'branch' },
+  { id: 'room3-route', name: '침실 3 통로', x: 2250, y: 3150, width: 850, height: 2350, kind: 'branch' },
+  { id: 'master-route', name: '침실 1 통로', x: 2850, y: 5350, width: 850, height: 1650, kind: 'branch' },
+  { id: 'room2-route', name: '침실 2 통로', x: 7000, y: 5350, width: 850, height: 1650, kind: 'branch' },
 ]
 
 const initialProducts: Product[] = [
@@ -124,22 +156,22 @@ const initialProducts: Product[] = [
 ]
 
 const initialState: PlannerState = {
-  schemaVersion: 1,
+  schemaVersion: 4,
   products: initialProducts,
   layouts: [
     {
       id: 'layout-a',
       name: 'A안 · 기본',
       placements: [
-        { id: 'p-sofa', productId: 'sofa-4', x: 250, y: 4380, rotation: 0, roomId: 'living' },
-        { id: 'p-tv', productId: 'tv-console', x: 2650, y: 3280, rotation: 0, roomId: 'living' },
-        { id: 'p-table', productId: 'dining-table', x: 5650, y: 4050, rotation: 90, roomId: 'kitchen' },
-        { id: 'p-bed', productId: 'queen-bed', x: 6150, y: 1050, rotation: 0, roomId: 'master' },
+        { id: 'p-sofa', productId: 'sofa-4', x: 3500, y: 7050, rotation: 0, roomId: 'living' },
+        { id: 'p-tv', productId: 'tv-console', x: 3900, y: 6000, rotation: 0, roomId: 'living' },
+        { id: 'p-table', productId: 'dining-table', x: 3100, y: 2800, rotation: 90, roomId: 'kitchen' },
+        { id: 'p-bed', productId: 'queen-bed', x: 350, y: 6150, rotation: 0, roomId: 'master' },
       ],
     },
   ],
   activeLayoutId: 'layout-a',
-  measuredReferenceMm: 3905,
+  measuredReferenceMm: 3800,
 }
 
 function loadState(): PlannerState {
@@ -147,7 +179,7 @@ function loadState(): PlannerState {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (!saved) return initialState
     const parsed = JSON.parse(saved) as PlannerState
-    if (parsed.schemaVersion !== 1 || !Array.isArray(parsed.layouts) || !Array.isArray(parsed.products)) return initialState
+    if (parsed.schemaVersion !== 4 || !Array.isArray(parsed.layouts) || !Array.isArray(parsed.products)) return initialState
     return parsed
   } catch {
     return initialState
@@ -173,7 +205,7 @@ function App() {
   const [saveState, setSaveState] = useState<'saving' | 'saved' | 'error'>('saved')
   const [showAdd, setShowAdd] = useState(false)
   const [noticeVisible, setNoticeVisible] = useState(() => !sessionStorage.getItem('mokgam-notice-seen'))
-  const [viewBox, setViewBox] = useState({ x: -220, y: -220, width: 8640, height: 7040 })
+  const [viewBox, setViewBox] = useState({ x: -320, y: -320, width: 10840, height: 10790 })
   const svgRef = useRef<SVGSVGElement | null>(null)
   const dragRef = useRef<null | { id: string; startX: number; startY: number; originX: number; originY: number }>(null)
   const panRef = useRef<null | { startClientX: number; startClientY: number; originX: number; originY: number }>(null)
@@ -234,7 +266,19 @@ function App() {
       placement.y < fixture.y + fixture.height &&
       placement.y + geometry.height > fixture.y
     ))
-    return { outside, overlap: furnitureOverlap || Boolean(fixtureCollision), room, fixtureCollision }
+    const passageCollision = passages.find((passage) => (
+      placement.x < passage.x + passage.width &&
+      placement.x + geometry.width > passage.x &&
+      placement.y < passage.y + passage.height &&
+      placement.y + geometry.height > passage.y
+    ))
+    return {
+      outside,
+      overlap: furnitureOverlap || Boolean(fixtureCollision),
+      room,
+      fixtureCollision,
+      passageCollision,
+    }
   }
 
   const distanceSummary = (placement: Placement) => {
@@ -341,13 +385,13 @@ function App() {
 
   const zoom = (direction: 'in' | 'out' | 'fit') => {
     if (direction === 'fit') {
-      setViewBox({ x: -220, y: -220, width: 8640, height: 7040 })
+      setViewBox({ x: -320, y: -320, width: 10840, height: 10790 })
       return
     }
     setViewBox((current) => {
       const factor = direction === 'in' ? 0.82 : 1.22
-      const maxWidth = 11000
-      const minWidth = 3600
+      const maxWidth = 13500
+      const minWidth = 4200
       const nextWidth = Math.min(maxWidth, Math.max(minWidth, current.width * factor))
       const ratio = nextWidth / current.width
       const nextHeight = current.height * ratio
@@ -421,8 +465,9 @@ function App() {
   const selectedDistances = selectedPlacement ? distanceSummary(selectedPlacement) : null
   const overallWarning = activeLayout.placements.some((placement) => {
     const status = placementStatus(placement)
-    return status.outside || status.overlap
+    return status.outside || status.overlap || Boolean(status.passageCollision)
   })
+  const passageWarning = activeLayout.placements.some((placement) => Boolean(placementStatus(placement).passageCollision))
 
   return (
     <div className="app-shell">
@@ -462,10 +507,10 @@ function App() {
               {overallWarning ? <CircleAlert size={17} /> : <Check size={17} />}
               <div>
                 <strong>{overallWarning ? '확인이 필요한 배치예요' : '평면상 배치 가능'}</strong>
-                <span>{overallWarning ? '겹침 또는 방 경계를 확인하세요' : '반입 경로와 문폭은 별도 실측이 필요해요'}</span>
+                <span>{passageWarning ? '가구가 주요 통로를 막고 있어요' : overallWarning ? '겹침 또는 방 경계를 확인하세요' : '주요 통로가 확보된 배치예요'}</span>
               </div>
             </div>
-            <div className="drawing-badge"><span>△</span> 참고 도면</div>
+            <div className="drawing-badge"><span>△</span> 1407동 A1 · 방향 확인 필요</div>
           </div>
 
           <div className="plan-stage">
@@ -492,8 +537,9 @@ function App() {
                   <line x1="0" y1="0" x2="0" y2="80" stroke="#9da9a3" strokeWidth="22" />
                 </pattern>
               </defs>
-              <rect x="-1000" y="-1000" width="10200" height="8600" fill="url(#minorGrid)" />
+              <rect x="-1200" y="-1200" width="12600" height="12550" fill="url(#minorGrid)" />
               <g className="rooms">
+                <path className="shared-floor" d="M1700 3690H2900V1350H6400V3070H8000V5930H7300V8370H3500V5930H1700Z" />
                 {rooms.map((room) => (
                   <g key={room.id}>
                     <rect className={`room room-${room.tone}`} x={room.x} y={room.y} width={room.width} height={room.height} />
@@ -501,13 +547,23 @@ function App() {
                     <text className="room-size" x={room.x + 120} y={room.y + 440}>{Math.round(room.width * metric).toLocaleString()} × {Math.round(room.height * metric).toLocaleString()}</text>
                   </g>
                 ))}
-                <path className="outer-wall" d={`M0 0H${PLAN_WIDTH}V${PLAN_HEIGHT}H0Z`} />
+                <path className="outer-wall" d={`M0 0H6400V3070H8000V3640H${PLAN_WIDTH}V${PLAN_HEIGHT}H7300V8800H7300V8370H3500V8370H0Z`} />
                 <g className="door-lines" aria-hidden="true">
-                  <path d="M2200 3100v-620a620 620 0 0 1 620 620" />
-                  <path d="M4400 3100v-600a600 600 0 0 0-600 600" />
-                  <path d="M5900 3600v-620a620 620 0 0 1 620 620" />
-                  <path d="M6200 5900h-620a620 620 0 0 0 620-620" />
+                  <path d="M2900 4900h-720a720 720 0 0 0 720 720" />
+                  <path d="M3500 5930v-720a720 720 0 0 0-720 720" />
+                  <path d="M7300 5930v-720a720 720 0 0 1 720 720" />
+                  <path d="M8000 4200h-720a720 720 0 0 1 720-720" />
                 </g>
+              </g>
+              <g className="passage-layer" aria-label="주요 생활 통로">
+                {passages.map((passage) => (
+                  <g key={passage.id} className={`passage passage-${passage.kind}`}>
+                    <rect x={passage.x} y={passage.y} width={passage.width} height={passage.height} rx="120" />
+                    {passage.kind === 'main' && (
+                      <text x={passage.x + passage.width / 2} y={passage.y + passage.height / 2} textAnchor="middle" dominantBaseline="central">통로</text>
+                    )}
+                  </g>
+                ))}
               </g>
               <g className="fixed-fixture-layer" aria-label="기본 고정 설비">
                 {fixedFixtures.map((fixture) => (
@@ -529,11 +585,11 @@ function App() {
                     <g
                       key={placement.id}
                       data-furniture="true"
-                      className={`furniture ${selected ? 'selected' : ''} ${status.outside || status.overlap ? 'invalid' : ''}`}
+                      className={`furniture ${selected ? 'selected' : ''} ${status.outside || status.overlap || status.passageCollision ? 'invalid' : ''}`}
                       transform={`translate(${placement.x} ${placement.y})`}
                       onPointerDown={(event) => handleFurniturePointerDown(event, placement)}
                       role="button"
-                      aria-label={`${product.name}, ${product.widthMm} × ${product.depthMm} mm${status.outside || status.overlap ? ', 배치 경고' : ''}`}
+                      aria-label={`${product.name}, ${product.widthMm} × ${product.depthMm} mm${status.outside || status.overlap || status.passageCollision ? ', 배치 경고' : ''}`}
                       tabIndex={0}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') {
@@ -546,7 +602,7 @@ function App() {
                       <rect width={geometry.width} height={geometry.height} rx="100" filter="url(#furnitureShadow)" />
                       <text className="furniture-name" x={geometry.width / 2} y={geometry.height / 2 - 45} textAnchor="middle">{product.name}</text>
                       <text className="furniture-size" x={geometry.width / 2} y={geometry.height / 2 + 125} textAnchor="middle">{product.widthMm} × {product.depthMm}</text>
-                      {(status.outside || status.overlap) && (
+                      {(status.outside || status.overlap || status.passageCollision) && (
                         <g transform={`translate(${geometry.width - 150} 150)`}>
                           <circle r="145" className="warning-dot" />
                           <text textAnchor="middle" dominantBaseline="central" className="warning-mark">!</text>
@@ -564,7 +620,10 @@ function App() {
               <button type="button" onClick={() => zoom('fit')} aria-label="전체 보기">맞춤</button>
             </div>
           <div className="plan-hint">빈 공간을 드래그하면 도면이 이동해요</div>
-          <div className="fixture-legend"><span /> 사선 영역은 움직일 수 없는 기본 설비예요</div>
+          <div className="plan-legends">
+            <div className="fixture-legend"><span /> 고정 설비</div>
+            <div className="passage-legend"><span /> 확보할 통로</div>
+          </div>
           </div>
 
           {selectedPlacement && selectedProduct && (
@@ -708,12 +767,12 @@ function SelectionPanel({
 }: {
   product: Product
   placement: Placement
-  status: { outside: boolean; overlap: boolean; room?: Room; fixtureCollision?: FixedFixture }
+  status: { outside: boolean; overlap: boolean; room?: Room; fixtureCollision?: FixedFixture; passageCollision?: Passage }
   distances: { wallDistance: number | null; furnitureDistance: number | null }
   onRotate: () => void
   onDelete: () => void
 }) {
-  const safe = !status.outside && !status.overlap
+  const safe = !status.outside && !status.overlap && !status.passageCollision
   return (
     <section className="panel-section">
       <span className="eyebrow">선택한 가구</span>
@@ -722,7 +781,7 @@ function SelectionPanel({
         {safe ? <Check size={20} /> : <CircleAlert size={20} />}
         <div>
           <strong>{safe ? '평면상 배치 가능' : '배치를 확인해주세요'}</strong>
-          <span>{status.outside ? '가구가 방 경계를 벗어났어요.' : status.fixtureCollision ? `${status.fixtureCollision.name}과 겹쳐 있어요.` : status.overlap ? '다른 가구와 겹쳐 있어요.' : `${status.room?.name ?? '공간'} 안에 배치됐어요.`}</span>
+          <span>{status.outside ? '가구가 방 경계를 벗어났어요.' : status.fixtureCollision ? `${status.fixtureCollision.name}과 겹쳐 있어요.` : status.passageCollision ? `${status.passageCollision.name}를 막고 있어요.` : status.overlap ? '다른 가구와 겹쳐 있어요.' : `${status.room?.name ?? '공간'} 안에서 통로를 확보했어요.`}</span>
         </div>
       </div>
       <div className="metric-grid">
@@ -736,7 +795,7 @@ function SelectionPanel({
         <button type="button" className="danger" onClick={onDelete}><Trash2 size={18} /> 삭제</button>
       </div>
       {product.url && <a className="product-link" href={product.url} target="_blank" rel="noreferrer">제품 페이지 열기 <ExternalLink size={15} /></a>}
-      <div className="fine-print"><CircleAlert size={15} /> 몰딩, 문 열림, 반입 경로는 판정에 포함되지 않아요.</div>
+      <div className="fine-print"><CircleAlert size={15} /> 몰딩, 문 열림, 세대 밖 배송 반입 경로는 판정에 포함되지 않아요.</div>
     </section>
   )
 }
@@ -787,8 +846,13 @@ function InfoPanel({ measured, onMeasuredChange }: { measured: number; onMeasure
       <span className="eyebrow">도면 신뢰도</span>
       <h2>기준과 실측</h2>
       <div className="source-card">
-        <div><span className="source-symbol">△</span><div><strong>참고 도면</strong><span>공개 자료를 바탕으로 만든 구조 참고용 도면</span></div></div>
-        <p>공식 준공도면 및 세대별 시공 오차는 확인되지 않았습니다.</p>
+        <div><span className="source-symbol">△</span><div><strong>1407동 59.80A1 구조 확인</strong><span>2015년 1407동 실세대 사전점검 도면 기준</span></div></div>
+        <p>방·욕실·주방·현관·발코니와 중앙 통로 구조는 확인했습니다. 공개 글은 방문한 호수를 밝히지 않아 1호 라인의 좌우 방향은 아직 확정하지 않았습니다.</p>
+      </div>
+      <div className="passage-info-card">
+        <div><Ruler size={18} /><strong>통로 검사 적용</strong></div>
+        <p>현관 진입, 중앙 연결부, 거실, 주방과 각 침실 출입부를 통행 영역으로 표시합니다. 가구가 영역을 침범하면 배치 경고가 표시됩니다.</p>
+        <small>통로 폭은 공개 도면을 바탕으로 잡은 참고 영역이며 실제 유효 폭은 현장 실측이 필요합니다.</small>
       </div>
       <div className="fixture-source-card">
         <div className="fixture-source-heading"><Check size={18} /><strong>기본 고정 설비 확인</strong></div>
@@ -817,7 +881,7 @@ function InfoPanel({ measured, onMeasuredChange }: { measured: number; onMeasure
       <div className="limits-list">
         <strong>결과에 포함되지 않는 항목</strong>
         <ul>
-          <li>현관·방문·엘리베이터 크기와 반입 동선</li>
+          <li>현관·방문·엘리베이터 크기와 배송 반입 동선</li>
           <li>몰딩, 걸레받이, 문 열림, 콘센트 위치</li>
           <li>실제 세대별 시공 오차와 옵션 차이</li>
         </ul>
