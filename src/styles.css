@@ -60,8 +60,8 @@ button:disabled { opacity: .42; cursor: not-allowed; }
 .room-balcony { fill: #e7f0eb; }
 .room-bedroom { fill: #f6eee2; }
 .room-master { fill: #efe8da; }
-.room-living { fill: #f8f4e8; }
-.room-kitchen { fill: #e7efeb; }
+.room-living { fill: #f8f4e8; stroke: none; }
+.room-kitchen { fill: #e7efeb; stroke: none; }
 .room-bath { fill: #e4edf0; }
 .room-entry { fill: #e9e7e2; }
 .shared-floor { fill: #f5f1e7; stroke: #32443e; stroke-width: 42; }

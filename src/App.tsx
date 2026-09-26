@@ -345,13 +345,14 @@ function App() {
   }
 
   const handlePointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
-    if (dragRef.current) {
+    const drag = dragRef.current
+    if (drag) {
       const point = toSvgPoint(event.clientX, event.clientY)
-      const nextX = Math.round((dragRef.current.originX + point.x - dragRef.current.startX) / 20) * 20
-      const nextY = Math.round((dragRef.current.originY + point.y - dragRef.current.startY) / 20) * 20
+      const nextX = Math.round((drag.originX + point.x - drag.startX) / 20) * 20
+      const nextY = Math.round((drag.originY + point.y - drag.startY) / 20) * 20
       updateActivePlacements((placements) =>
         placements.map((placement) => {
-          if (placement.id !== dragRef.current?.id) return placement
+          if (placement.id !== drag.id) return placement
           const geometry = geometryFor(placement)
           const room = pointInRoom(nextX + geometry.width / 2, nextY + geometry.height / 2)
           return { ...placement, x: nextX, y: nextY, roomId: room?.id ?? placement.roomId }
@@ -359,15 +360,18 @@ function App() {
       )
       return
     }
-    if (panRef.current) {
+    const pan = panRef.current
+    if (pan) {
       const svg = svgRef.current
       if (!svg) return
+      const clientX = event.clientX
+      const clientY = event.clientY
       const factorX = viewBox.width / svg.clientWidth
       const factorY = viewBox.height / svg.clientHeight
       setViewBox((current) => ({
         ...current,
-        x: panRef.current!.originX - (event.clientX - panRef.current!.startClientX) * factorX,
-        y: panRef.current!.originY - (event.clientY - panRef.current!.startClientY) * factorY,
+        x: pan.originX - (clientX - pan.startClientX) * factorX,
+        y: pan.originY - (clientY - pan.startClientY) * factorY,
       }))
     }
   }
