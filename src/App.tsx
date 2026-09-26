@@ -66,6 +66,17 @@ type Room = {
   tone: string
 }
 
+type FixedFixture = {
+  id: string
+  name: string
+  roomId: string
+  x: number
+  y: number
+  width: number
+  height: number
+  verifiedBy: string
+}
+
 const PLAN_WIDTH = 8200
 const PLAN_HEIGHT = 6600
 const DRAWING_REFERENCE_MM = 3917
@@ -80,6 +91,29 @@ const rooms: Room[] = [
   { id: 'kitchen', name: '주방 · 식당', x: 4700, y: 3600, width: 3500, height: 1800, tone: 'kitchen' },
   { id: 'bath', name: '욕실', x: 4700, y: 5400, width: 1500, height: 1200, tone: 'bath' },
   { id: 'entry', name: '현관', x: 6200, y: 5400, width: 2000, height: 1200, tone: 'entry' },
+]
+
+const fixedFixtures: FixedFixture[] = [
+  {
+    id: 'bedroom3-wardrobe',
+    name: '기본 붙박이장',
+    roomId: 'room3',
+    x: 3980,
+    y: 800,
+    width: 600,
+    height: 1650,
+    verifiedBy: '59A1 실세대 사전점검 사진',
+  },
+  {
+    id: 'kitchen-sink',
+    name: '기본 싱크대',
+    roomId: 'kitchen',
+    x: 4760,
+    y: 3660,
+    width: 2500,
+    height: 600,
+    verifiedBy: '59A1 실세대 사전점검 사진',
+  },
 ]
 
 const initialProducts: Product[] = [
@@ -184,7 +218,7 @@ function App() {
     const geometry = geometryFor(placement)
     const room = rooms.find((item) => item.id === placement.roomId) ?? pointInRoom(placement.x + geometry.width / 2, placement.y + geometry.height / 2)
     const outside = !room || placement.x < room.x || placement.y < room.y || placement.x + geometry.width > room.x + room.width || placement.y + geometry.height > room.y + room.height
-    const overlap = activeLayout.placements.some((other) => {
+    const furnitureOverlap = activeLayout.placements.some((other) => {
       if (other.id === placement.id) return false
       const otherGeometry = geometryFor(other)
       return (
@@ -194,7 +228,13 @@ function App() {
         placement.y + geometry.height > other.y
       )
     })
-    return { outside, overlap, room }
+    const fixtureCollision = fixedFixtures.find((fixture) => (
+      placement.x < fixture.x + fixture.width &&
+      placement.x + geometry.width > fixture.x &&
+      placement.y < fixture.y + fixture.height &&
+      placement.y + geometry.height > fixture.y
+    ))
+    return { outside, overlap: furnitureOverlap || Boolean(fixtureCollision), room, fixtureCollision }
   }
 
   const distanceSummary = (placement: Placement) => {
@@ -219,6 +259,12 @@ function App() {
       const otherGeometry = geometryFor(other)
       const dx = Math.max(other.x - (placement.x + geometry.width), placement.x - (other.x + otherGeometry.width), 0)
       const dy = Math.max(other.y - (placement.y + geometry.height), placement.y - (other.y + otherGeometry.height), 0)
+      const distance = Math.hypot(dx, dy) * metric
+      furnitureDistance = furnitureDistance === null ? distance : Math.min(furnitureDistance, distance)
+    }
+    for (const fixture of fixedFixtures) {
+      const dx = Math.max(fixture.x - (placement.x + geometry.width), placement.x - (fixture.x + fixture.width), 0)
+      const dy = Math.max(fixture.y - (placement.y + geometry.height), placement.y - (fixture.y + fixture.height), 0)
       const distance = Math.hypot(dx, dy) * metric
       furnitureDistance = furnitureDistance === null ? distance : Math.min(furnitureDistance, distance)
     }
@@ -441,6 +487,10 @@ function App() {
                 <filter id="furnitureShadow" x="-20%" y="-20%" width="140%" height="140%">
                   <feDropShadow dx="0" dy="20" stdDeviation="20" floodColor="#142a26" floodOpacity=".16" />
                 </filter>
+                <pattern id="fixtureHatch" width="80" height="80" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                  <rect width="80" height="80" fill="#d7ddd8" />
+                  <line x1="0" y1="0" x2="0" y2="80" stroke="#9da9a3" strokeWidth="22" />
+                </pattern>
               </defs>
               <rect x="-1000" y="-1000" width="10200" height="8600" fill="url(#minorGrid)" />
               <g className="rooms">
@@ -458,6 +508,15 @@ function App() {
                   <path d="M5900 3600v-620a620 620 0 0 1 620 620" />
                   <path d="M6200 5900h-620a620 620 0 0 0 620-620" />
                 </g>
+              </g>
+              <g className="fixed-fixture-layer" aria-label="기본 고정 설비">
+                {fixedFixtures.map((fixture) => (
+                  <g key={fixture.id} className="fixed-fixture">
+                    <rect x={fixture.x} y={fixture.y} width={fixture.width} height={fixture.height} rx="55" />
+                    <text className="fixture-kicker" x={fixture.x + fixture.width / 2} y={fixture.y + fixture.height / 2 - 55} textAnchor="middle">고정 · △ 참고</text>
+                    <text className="fixture-name" x={fixture.x + fixture.width / 2} y={fixture.y + fixture.height / 2 + 115} textAnchor="middle">{fixture.name}</text>
+                  </g>
+                ))}
               </g>
               <g className="furniture-layer">
                 {activeLayout.placements.map((placement) => {
@@ -504,7 +563,8 @@ function App() {
               <button type="button" onClick={() => zoom('out')} aria-label="축소"><Minus size={18} /></button>
               <button type="button" onClick={() => zoom('fit')} aria-label="전체 보기">맞춤</button>
             </div>
-            <div className="plan-hint">빈 공간을 드래그하면 도면이 이동해요</div>
+          <div className="plan-hint">빈 공간을 드래그하면 도면이 이동해요</div>
+          <div className="fixture-legend"><span /> 사선 영역은 움직일 수 없는 기본 설비예요</div>
           </div>
 
           {selectedPlacement && selectedProduct && (
@@ -648,7 +708,7 @@ function SelectionPanel({
 }: {
   product: Product
   placement: Placement
-  status: { outside: boolean; overlap: boolean; room?: Room }
+  status: { outside: boolean; overlap: boolean; room?: Room; fixtureCollision?: FixedFixture }
   distances: { wallDistance: number | null; furnitureDistance: number | null }
   onRotate: () => void
   onDelete: () => void
@@ -662,14 +722,14 @@ function SelectionPanel({
         {safe ? <Check size={20} /> : <CircleAlert size={20} />}
         <div>
           <strong>{safe ? '평면상 배치 가능' : '배치를 확인해주세요'}</strong>
-          <span>{status.outside ? '가구가 방 경계를 벗어났어요.' : status.overlap ? '다른 가구와 겹쳐 있어요.' : `${status.room?.name ?? '공간'} 안에 배치됐어요.`}</span>
+          <span>{status.outside ? '가구가 방 경계를 벗어났어요.' : status.fixtureCollision ? `${status.fixtureCollision.name}과 겹쳐 있어요.` : status.overlap ? '다른 가구와 겹쳐 있어요.' : `${status.room?.name ?? '공간'} 안에 배치됐어요.`}</span>
         </div>
       </div>
       <div className="metric-grid">
         <div><span>크기</span><strong>{product.widthMm.toLocaleString()} × {product.depthMm.toLocaleString()}</strong><small>mm</small></div>
         <div><span>회전</span><strong>{placement.rotation}°</strong><small>현재 방향</small></div>
         <div><span>가까운 벽</span><strong>{distances.wallDistance === null ? '—' : Math.round(distances.wallDistance).toLocaleString()}</strong><small>mm 여유</small></div>
-        <div><span>가까운 가구</span><strong>{distances.furnitureDistance === null ? '—' : Math.round(distances.furnitureDistance).toLocaleString()}</strong><small>mm 여유</small></div>
+        <div><span>가까운 가구·고정물</span><strong>{distances.furnitureDistance === null ? '—' : Math.round(distances.furnitureDistance).toLocaleString()}</strong><small>mm 여유</small></div>
       </div>
       <div className="action-row">
         <button type="button" className="primary" onClick={onRotate}><RotateCw size={18} /> 90° 회전</button>
@@ -729,6 +789,17 @@ function InfoPanel({ measured, onMeasuredChange }: { measured: number; onMeasure
       <div className="source-card">
         <div><span className="source-symbol">△</span><div><strong>참고 도면</strong><span>공개 자료를 바탕으로 만든 구조 참고용 도면</span></div></div>
         <p>공식 준공도면 및 세대별 시공 오차는 확인되지 않았습니다.</p>
+      </div>
+      <div className="fixture-source-card">
+        <div className="fixture-source-heading"><Check size={18} /><strong>기본 고정 설비 확인</strong></div>
+        {fixedFixtures.map((fixture) => (
+          <div className="fixture-source-row" key={fixture.id}>
+            <div><strong>{fixture.name}</strong><span>{fixture.verifiedBy}</span></div>
+            <span className="reference-chip">치수 △ 참고</span>
+          </div>
+        ))}
+        <a href="https://apt2you.tistory.com/56" target="_blank" rel="noreferrer">59A1 사전점검 근거 보기 <ExternalLink size={14} /></a>
+        <p>설치 여부는 확인했지만 정확한 위치와 깊이는 실측 전까지 참고값으로 적용합니다.</p>
       </div>
       <div className="calibration-card">
         <div className="calibration-heading"><Ruler size={18} /><strong>거실 기준 벽 축척 보정</strong></div>

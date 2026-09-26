@@ -68,6 +68,10 @@ button:disabled { opacity: .42; cursor: not-allowed; }
 .room-label { font-family: 'Gowun Dodum', sans-serif; font-size: 180px; fill: #2e3b37; font-weight: 700; pointer-events: none; }
 .room-size { font-size: 120px; fill: #83908b; pointer-events: none; }
 .door-lines path { fill: none; stroke: #82908b; stroke-width: 35; stroke-dasharray: 80 35; pointer-events: none; }
+.fixed-fixture { pointer-events: none; }
+.fixed-fixture rect { fill: url(#fixtureHatch); stroke: #66736e; stroke-width: 34; }
+.fixture-kicker { fill: #66736e; font-size: 92px; font-weight: 700; }
+.fixture-name { fill: #293c36; font-size: 145px; font-weight: 800; }
 .furniture { cursor: grab; }
 .furniture:active { cursor: grabbing; }
 .furniture rect { fill: #3f7768; stroke: #21483e; stroke-width: 32; transition: fill .18s, stroke .18s; }
@@ -82,6 +86,8 @@ button:disabled { opacity: .42; cursor: not-allowed; }
 .zoom-controls button:last-child { border-right: 0; padding: 0 12px; font-size: 12px; font-weight: 700; }
 .zoom-controls button:hover { background: #f3f6f3; }
 .plan-hint { position: absolute; left: 14px; bottom: 14px; padding: 8px 11px; color: #5f6c67; background: rgba(255,255,255,.9); border: 1px solid var(--line); border-radius: 9px; font-size: 12px; backdrop-filter: blur(6px); }
+.fixture-legend { position: absolute; right: 14px; bottom: 14px; padding: 8px 11px; display: flex; align-items: center; gap: 7px; color: #5f6c67; background: rgba(255,255,255,.9); border: 1px solid var(--line); border-radius: 9px; font-size: 11px; backdrop-filter: blur(6px); }
+.fixture-legend span { width: 18px; height: 14px; border: 1px solid #7c8883; border-radius: 3px; background: repeating-linear-gradient(45deg,#d7ddd8 0 4px,#9da9a3 4px 6px); }
 .floating-selection-bar { display: none; }
 
 .control-panel { background: var(--paper); border-left: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
@@ -147,6 +153,15 @@ button.compact { min-height: 38px; padding: 0 11px; font-size: 12px; }
 .source-card strong { font-size: 14px; }
 .source-card span:not(.source-symbol), .source-card p { color: #756b51; font-size: 11px; line-height: 1.55; }
 .source-card p { margin: 12px 0 0; }
+.fixture-source-card { margin-top: 12px; padding: 15px; background: white; border: 1px solid var(--line); border-radius: 14px; }
+.fixture-source-heading { display: flex; align-items: center; gap: 8px; color: var(--success); font-size: 13px; }
+.fixture-source-row { padding: 11px 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid #e9edea; }
+.fixture-source-row div { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.fixture-source-row strong { font-size: 12px; }
+.fixture-source-row div span { color: var(--muted); font-size: 10px; }
+.reference-chip { flex: 0 0 auto; padding: 4px 7px; color: #765f26; background: #fff5d8; border-radius: 99px; font-size: 9px; font-weight: 700; }
+.fixture-source-card > a { min-height: 40px; display: flex; align-items: center; gap: 6px; color: var(--forest-2); font-size: 11px; font-weight: 700; text-decoration: none; }
+.fixture-source-card > p { margin: 5px 0 0; color: var(--muted); font-size: 10px; line-height: 1.55; }
 .calibration-card { margin-top: 12px; padding: 15px; background: white; border: 1px solid var(--line); border-radius: 14px; }
 .calibration-heading { display: flex; align-items: center; gap: 8px; font-size: 13px; }
 .compare-values { margin-top: 14px; display: grid; grid-template-columns: 1fr 22px 1fr; align-items: center; gap: 5px; }
@@ -201,6 +216,7 @@ button.compact { min-height: 38px; padding: 0 11px; font-size: 12px; }
   .drawing-badge { padding: 6px 9px; }
   .plan-stage { border-radius: 16px; }
   .plan-hint { display: none; }
+  .fixture-legend { left: 10px; right: auto; bottom: 78px; max-width: calc(100% - 90px); font-size: 10px; }
   .zoom-controls { top: 10px; right: 10px; }
   .zoom-controls button { min-width: 44px; height: 44px; }
   .floating-selection-bar { position: absolute; left: 22px; right: 22px; bottom: 10px; z-index: 8; min-height: 56px; padding: 7px 8px 7px 13px; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 6px; color: white; background: rgba(23,59,52,.96); border: 1px solid rgba(255,255,255,.16); border-radius: 14px; box-shadow: 0 12px 32px rgba(16,36,30,.24); backdrop-filter: blur(10px); }
