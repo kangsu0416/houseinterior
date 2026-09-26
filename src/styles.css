@@ -90,6 +90,9 @@ button:disabled { opacity: .42; cursor: not-allowed; }
 .zoom-controls button { min-width: 44px; height: 44px; display: grid; place-items: center; background: white; border: 0; border-right: 1px solid var(--line); cursor: pointer; }
 .zoom-controls button:last-child { border-right: 0; padding: 0 12px; font-size: 12px; font-weight: 700; }
 .zoom-controls button:hover { background: #f3f6f3; }
+.passage-toggle { position: absolute; left: 14px; top: 14px; min-height: 44px; padding: 0 13px; display: inline-flex; align-items: center; gap: 7px; color: #315b66; background: rgba(255,255,255,.94); border: 1px solid #c8d9dd; border-radius: 12px; box-shadow: 0 6px 22px rgba(29,45,39,.1); font-size: 12px; font-weight: 700; cursor: pointer; backdrop-filter: blur(6px); }
+.passage-toggle:hover { background: #eef7f8; }
+.passage-toggle.active { color: white; background: #32798d; border-color: #32798d; }
 .plan-hint { position: absolute; left: 14px; bottom: 14px; padding: 8px 11px; color: #5f6c67; background: rgba(255,255,255,.9); border: 1px solid var(--line); border-radius: 9px; font-size: 12px; backdrop-filter: blur(6px); }
 .plan-legends { position: absolute; right: 14px; bottom: 14px; display: flex; align-items: center; gap: 6px; }
 .fixture-legend, .passage-legend { padding: 8px 10px; display: flex; align-items: center; gap: 7px; color: #5f6c67; background: rgba(255,255,255,.9); border: 1px solid var(--line); border-radius: 9px; font-size: 11px; backdrop-filter: blur(6px); }
@@ -231,6 +234,7 @@ button.compact { min-height: 38px; padding: 0 11px; font-size: 12px; }
   .fixture-legend, .passage-legend { padding: 6px 8px; font-size: 9px; }
   .zoom-controls { top: 10px; right: 10px; }
   .zoom-controls button { min-width: 44px; height: 44px; }
+  .passage-toggle { left: 10px; top: 10px; min-height: 44px; padding: 0 11px; }
   .floating-selection-bar { position: absolute; left: 22px; right: 22px; bottom: 10px; z-index: 8; min-height: 56px; padding: 7px 8px 7px 13px; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 6px; color: white; background: rgba(23,59,52,.96); border: 1px solid rgba(255,255,255,.16); border-radius: 14px; box-shadow: 0 12px 32px rgba(16,36,30,.24); backdrop-filter: blur(10px); }
   .floating-selection-bar > div { display: flex; flex-direction: column; min-width: 0; }
   .floating-selection-bar span { color: #b9d0c7; font-size: 10px; }

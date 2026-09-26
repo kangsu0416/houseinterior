@@ -204,6 +204,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabKey>('selection')
   const [saveState, setSaveState] = useState<'saving' | 'saved' | 'error'>('saved')
   const [showAdd, setShowAdd] = useState(false)
+  const [showPassages, setShowPassages] = useState(false)
   const [noticeVisible, setNoticeVisible] = useState(() => !sessionStorage.getItem('mokgam-notice-seen'))
   const [viewBox, setViewBox] = useState({ x: -320, y: -320, width: 10840, height: 10790 })
   const svgRef = useRef<SVGSVGElement | null>(null)
@@ -266,18 +267,11 @@ function App() {
       placement.y < fixture.y + fixture.height &&
       placement.y + geometry.height > fixture.y
     ))
-    const passageCollision = passages.find((passage) => (
-      placement.x < passage.x + passage.width &&
-      placement.x + geometry.width > passage.x &&
-      placement.y < passage.y + passage.height &&
-      placement.y + geometry.height > passage.y
-    ))
     return {
       outside,
       overlap: furnitureOverlap || Boolean(fixtureCollision),
       room,
       fixtureCollision,
-      passageCollision,
     }
   }
 
@@ -465,9 +459,8 @@ function App() {
   const selectedDistances = selectedPlacement ? distanceSummary(selectedPlacement) : null
   const overallWarning = activeLayout.placements.some((placement) => {
     const status = placementStatus(placement)
-    return status.outside || status.overlap || Boolean(status.passageCollision)
+    return status.outside || status.overlap
   })
-  const passageWarning = activeLayout.placements.some((placement) => Boolean(placementStatus(placement).passageCollision))
 
   return (
     <div className="app-shell">
@@ -507,7 +500,7 @@ function App() {
               {overallWarning ? <CircleAlert size={17} /> : <Check size={17} />}
               <div>
                 <strong>{overallWarning ? '확인이 필요한 배치예요' : '평면상 배치 가능'}</strong>
-                <span>{passageWarning ? '가구가 주요 통로를 막고 있어요' : overallWarning ? '겹침 또는 방 경계를 확인하세요' : '주요 통로가 확보된 배치예요'}</span>
+                <span>{overallWarning ? '겹침 또는 방 경계를 확인하세요' : '벽·가구·고정 설비와 겹치지 않아요'}</span>
               </div>
             </div>
             <div className="drawing-badge"><span>△</span> 1407동 A1 · 방향 확인 필요</div>
@@ -555,16 +548,18 @@ function App() {
                   <path d="M8000 4200h-720a720 720 0 0 1 720-720" />
                 </g>
               </g>
-              <g className="passage-layer" aria-label="주요 생활 통로">
-                {passages.map((passage) => (
-                  <g key={passage.id} className={`passage passage-${passage.kind}`}>
-                    <rect x={passage.x} y={passage.y} width={passage.width} height={passage.height} rx="120" />
-                    {passage.kind === 'main' && (
-                      <text x={passage.x + passage.width / 2} y={passage.y + passage.height / 2} textAnchor="middle" dominantBaseline="central">통로</text>
-                    )}
-                  </g>
-                ))}
-              </g>
+              {showPassages && (
+                <g className="passage-layer" aria-label="참고용 생활 통로">
+                  {passages.map((passage) => (
+                    <g key={passage.id} className={`passage passage-${passage.kind}`}>
+                      <rect x={passage.x} y={passage.y} width={passage.width} height={passage.height} rx="120" />
+                      {passage.kind === 'main' && (
+                        <text x={passage.x + passage.width / 2} y={passage.y + passage.height / 2} textAnchor="middle" dominantBaseline="central">통로</text>
+                      )}
+                    </g>
+                  ))}
+                </g>
+              )}
               <g className="fixed-fixture-layer" aria-label="기본 고정 설비">
                 {fixedFixtures.map((fixture) => (
                   <g key={fixture.id} className="fixed-fixture">
@@ -585,11 +580,11 @@ function App() {
                     <g
                       key={placement.id}
                       data-furniture="true"
-                      className={`furniture ${selected ? 'selected' : ''} ${status.outside || status.overlap || status.passageCollision ? 'invalid' : ''}`}
+                      className={`furniture ${selected ? 'selected' : ''} ${status.outside || status.overlap ? 'invalid' : ''}`}
                       transform={`translate(${placement.x} ${placement.y})`}
                       onPointerDown={(event) => handleFurniturePointerDown(event, placement)}
                       role="button"
-                      aria-label={`${product.name}, ${product.widthMm} × ${product.depthMm} mm${status.outside || status.overlap || status.passageCollision ? ', 배치 경고' : ''}`}
+                      aria-label={`${product.name}, ${product.widthMm} × ${product.depthMm} mm${status.outside || status.overlap ? ', 배치 경고' : ''}`}
                       tabIndex={0}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') {
@@ -602,7 +597,7 @@ function App() {
                       <rect width={geometry.width} height={geometry.height} rx="100" filter="url(#furnitureShadow)" />
                       <text className="furniture-name" x={geometry.width / 2} y={geometry.height / 2 - 45} textAnchor="middle">{product.name}</text>
                       <text className="furniture-size" x={geometry.width / 2} y={geometry.height / 2 + 125} textAnchor="middle">{product.widthMm} × {product.depthMm}</text>
-                      {(status.outside || status.overlap || status.passageCollision) && (
+                      {(status.outside || status.overlap) && (
                         <g transform={`translate(${geometry.width - 150} 150)`}>
                           <circle r="145" className="warning-dot" />
                           <text textAnchor="middle" dominantBaseline="central" className="warning-mark">!</text>
@@ -619,10 +614,18 @@ function App() {
               <button type="button" onClick={() => zoom('out')} aria-label="축소"><Minus size={18} /></button>
               <button type="button" onClick={() => zoom('fit')} aria-label="전체 보기">맞춤</button>
             </div>
+            <button
+              type="button"
+              className={`passage-toggle ${showPassages ? 'active' : ''}`}
+              aria-pressed={showPassages}
+              onClick={() => setShowPassages((visible) => !visible)}
+            >
+              <Layers3 size={16} /> {showPassages ? '통로 숨기기' : '통로 보기'}
+            </button>
           <div className="plan-hint">빈 공간을 드래그하면 도면이 이동해요</div>
           <div className="plan-legends">
             <div className="fixture-legend"><span /> 고정 설비</div>
-            <div className="passage-legend"><span /> 확보할 통로</div>
+            {showPassages && <div className="passage-legend"><span /> 참고용 통로 · 배치 가능</div>}
           </div>
           </div>
 
@@ -767,12 +770,12 @@ function SelectionPanel({
 }: {
   product: Product
   placement: Placement
-  status: { outside: boolean; overlap: boolean; room?: Room; fixtureCollision?: FixedFixture; passageCollision?: Passage }
+  status: { outside: boolean; overlap: boolean; room?: Room; fixtureCollision?: FixedFixture }
   distances: { wallDistance: number | null; furnitureDistance: number | null }
   onRotate: () => void
   onDelete: () => void
 }) {
-  const safe = !status.outside && !status.overlap && !status.passageCollision
+  const safe = !status.outside && !status.overlap
   return (
     <section className="panel-section">
       <span className="eyebrow">선택한 가구</span>
@@ -781,7 +784,7 @@ function SelectionPanel({
         {safe ? <Check size={20} /> : <CircleAlert size={20} />}
         <div>
           <strong>{safe ? '평면상 배치 가능' : '배치를 확인해주세요'}</strong>
-          <span>{status.outside ? '가구가 방 경계를 벗어났어요.' : status.fixtureCollision ? `${status.fixtureCollision.name}과 겹쳐 있어요.` : status.passageCollision ? `${status.passageCollision.name}를 막고 있어요.` : status.overlap ? '다른 가구와 겹쳐 있어요.' : `${status.room?.name ?? '공간'} 안에서 통로를 확보했어요.`}</span>
+          <span>{status.outside ? '가구가 방 경계를 벗어났어요.' : status.fixtureCollision ? `${status.fixtureCollision.name}과 겹쳐 있어요.` : status.overlap ? '다른 가구와 겹쳐 있어요.' : `${status.room?.name ?? '공간'} 안에 배치됐어요.`}</span>
         </div>
       </div>
       <div className="metric-grid">
@@ -850,9 +853,9 @@ function InfoPanel({ measured, onMeasuredChange }: { measured: number; onMeasure
         <p>방·욕실·주방·현관·발코니와 중앙 통로 구조는 확인했습니다. 공개 글은 방문한 호수를 밝히지 않아 1호 라인의 좌우 방향은 아직 확정하지 않았습니다.</p>
       </div>
       <div className="passage-info-card">
-        <div><Ruler size={18} /><strong>통로 검사 적용</strong></div>
-        <p>현관 진입, 중앙 연결부, 거실, 주방과 각 침실 출입부를 통행 영역으로 표시합니다. 가구가 영역을 침범하면 배치 경고가 표시됩니다.</p>
-        <small>통로 폭은 공개 도면을 바탕으로 잡은 참고 영역이며 실제 유효 폭은 현장 실측이 필요합니다.</small>
+        <div><Layers3 size={18} /><strong>참고용 통로 오버레이</strong></div>
+        <p>현관 진입, 중앙 연결부, 거실, 주방과 각 침실 출입부를 점선으로 확인할 수 있습니다. 통로 위에도 가구를 배치할 수 있으며 경고가 표시되지 않습니다.</p>
+        <small>통로는 공개 도면을 바탕으로 추정한 참고 영역입니다. 실제 생활 동선과 유효 폭은 현장에서 확인해주세요.</small>
       </div>
       <div className="fixture-source-card">
         <div className="fixture-source-heading"><Check size={18} /><strong>기본 고정 설비 확인</strong></div>
